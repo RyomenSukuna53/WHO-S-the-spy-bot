@@ -3,10 +3,10 @@ import asyncio
 from pyrogram import Client, filters
 
 # Bot Credentials
-API_ID = "25698862"
-API_HASH = "7d7739b44f5f8c825d48cc6787889dbc"
-BOT_TOKEN = "7565624710:AAEmVXk-ZImUSgQ4nzf0-eAorbC-LUXJAEM"
-ADMIN_ID = 7019600964  # Replace with your Telegram ID
+API_ID = "apni api id daalo"
+API_HASH = "apni api hash daalo"
+BOT_TOKEN = "apna bot token daalo"
+ADMIN_ID = telegram id # Replace with your Telegram ID
 
 bot = Client("whos_the_spy_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 games = {}
