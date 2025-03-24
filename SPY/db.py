@@ -1,7 +1,7 @@
 import asyncio
 from motor.motor_asyncio import AsyncIOMotorClient
 import asyncio
-for pyrogram import client, filters
+from pyrogram import client, filters
 
 MONGO_URI = "mongodb+srv://shekhikrar026:vmDYM8pQDo07OJk9@cluster0.f9x5k.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 
