@@ -7,3 +7,9 @@ client = AsyncIOMotorClient(MONGO_URI)
 spy = client["spy_database"]
 user_col = spy["users"]
 ban_col = spy["banned_users"]
+
+try:
+    client.server_info()  # This will raise an error if the connection fails
+    print("Connected to MongoDB successfully!")
+except Exception as e:
+    print(f"Error connecting to MongoDB: {e}")
