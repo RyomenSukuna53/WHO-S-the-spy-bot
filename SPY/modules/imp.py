@@ -1,181 +1,135 @@
 import asyncio
 from SPY import bot
 from pyrogram import filters
-from pyrogram.types import Message, ChatMember
+from pyrogram.types import Message
 from datetime import datetime
 from SPY.db import users_col, active_games_col
 from pyrogram.enums import ChatType, ChatMemberStatus, ParseMode
 
 
-# For end_command
+# 🌟 /join command - Players game join kar sakte hain
+@bot.on_message(filters.command("join") & filters.group)
+async def join_command(_, message: Message):
+    user_id = message.from_user.id
+    username = message.from_user.username or message.from_user.first_name
+    first_name = message.from_user.first_name or "Player"
+    chat_id = message.chat.id
+
+    # Active game check karo
+    active_game = active_games_col.find_one({"chat_id": chat_id, "status": "waiting"})
+    
+    if not active_game:
+        await message.reply("❌ THERE IS NO ACTIVE GAME IN THIS CHAT")
+        return
+
+    # Agar user already game mein hai toh
+    if any(player["user_id"] == user_id for player in active_game["players"]):
+        await message.reply(f"⚠️ {first_name}, You Are Already In The Game!")
+        return
+
+    # User ko game mein add karo
+    player_data = {"user_id": user_id, "name": first_name, "role": "unknown"}
+    active_games_col.update_one(
+        {"_id": active_game["_id"]},
+        {"$push": {"players": player_data}}
+    )
+
+    await message.reply(f">🎉 [{first_name}](tg://user?id={user_id}), Has been joined the game!", parse_mode=enums.ParseMode.MARKDOWN)
+
+
+# 🌟 /leave command - Players game leave kar sakte hain
+@bot.on_message(filters.command("leave") & filters.group)
+async def leave_command(_, message: Message):
+    user_id = message.from_user.id
+    first_name = message.from_user.first_name or "Player"
+    chat_id = message.chat.id
+
+    # Active game check karo
+    active_game = active_games_col.find_one({"chat_id": chat_id, "status": "waiting"})
+
+    if not active_game:
+        await message.reply("❌ Koi active game abhi nahi chal raha.")
+        return
+
+    # Check karo agar player game mein hai
+    if not any(player["user_id"] == user_id for player in active_game["players"]):
+        await message.reply(f"⚠️ {first_name}, tum game mein nahi ho.")
+        return
+
+    # Player ko game se hatao
+    active_games_col.update_one(
+        {"_id": active_game["_id"]},
+        {"$pull": {"players": {"user_id": user_id}}}
+    )
+
+    await message.reply(f"👋 {first_name}, tumne game leave kar diya.")
+
+
+# 🌟 /members_list command - Jo log game mein hai unki list
+@bot.on_message(filters.command("members_list") & filters.group)
+async def members_list_command(_, message: Message):
+    chat_id = message.chat.id
+
+    # Active game check karo
+    active_game = active_games_col.find_one({"chat_id": chat_id, "status": {"$in": ["waiting", "ongoing"]}})
+
+    if not active_game:
+        return await message.reply("❌ Koi active game nahi hai.")
+
+    players = active_game.get("players", [])
+
+    if not players:
+        return await message.reply("🚫 Koi player abhi tak join nahi hua.")
+
+    # Players list format karo
+    mentions = [f"{i+1}. [{p['name']}](tg://user?id={p['user_id']})" for i, p in enumerate(players)]
+    members_list = "\n".join(mentions)
+
+    await message.reply(
+        f"👥 **Players in Game:**\n\n{members_list}",
+        parse_mode=ParseMode.MARKDOWN
+    )
+
+
+# 🌟 /end command - Game creator ya admin game end kar sakta hai
 @bot.on_message(filters.command("end") & filters.group)
 async def end_command(_, message: Message):
     user_id = message.from_user.id
     chat_id = message.chat.id
 
-    # Ensure the command is being used in a group or supergroup
+    # Group ya supergroup check karo
     if message.chat.type not in [ChatType.GROUP, ChatType.SUPERGROUP]:
-        await message.reply("❌ This command can only be used in group chats.")
+        await message.reply("❌ Ye command sirf group mein use kiya ja sakta hai.")
         return
 
-    # Get the chat member object to check the user's status
+    # Group admin check karo
     chat_member = await bot.get_chat_member(chat_id, user_id)
 
-    # Fetch active game asynchronously
-    active_game = await active_games_col.find_one({"status": {"$in": ["active", "waiting"]}})
+    # Active game fetch karo
+    active_game = active_games_col.find_one({"chat_id": chat_id, "status": "ongoing"})
 
     if not active_game:
-        await message.reply("❌ No active game to end.")
+        await message.reply("❌ Koi active game nahi hai jo end kiya ja sake.")
         return
 
-    # Check if the user is the game creator or a group admin
     creator_id = active_game.get("creator_id")
-    creator_name = active_game.get("creator_name", "Unknown")
 
     if user_id != creator_id and chat_member.status not in [ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER]:
-        await message.reply("⚠️ Only the game creator or a group admin can end the game.")
+        await message.reply("⚠️ Sirf game creator ya admin hi game end kar sakta hai.")
         return
 
-    # End the game
-    await active_games_col.update_one(
+    # Game ko "ended" status do
+    active_games_col.update_one(
         {"_id": active_game["_id"]},
         {"$set": {"status": "ended"}}
     )
 
-    # Notify players
+    # Players ko notify karo
     players = active_game["players"]
-    mentions = []
-
-    for player in players:
-        user = await users_col.find_one({"user_id": player})  # Awaiting the user fetch
-        if user:
-            first_name = user.get('firstname', 'Player')
-            mentions.append(f"[{first_name}](tg://user?id={player})")
-        else:
-            mentions.append(f"Player {player}")
-
-    mentions_list = ", ".join(mentions) if mentions else "No players found in the database."
+    mentions = [f"[{p['name']}](tg://user?id={p['user_id']})" for p in players]
 
     await bot.send_message(
         chat_id=chat_id,
-        text=(
-            f"❌ The game created by [{creator_name}](tg://user?id={creator_id}) "
-            f"has been ended.\n👥 Players: {mentions_list}"
-        ),
+        text=f"❌ Game end ho gaya!\n👥 Players: {', '.join(mentions)}",
         parse_mode=ParseMode.MARKDOWN
     )
-    
-# For join_command
-@bot.on_message(filters.command("join") & filters.group)
-async def join_command(_, message: Message):
-    user_id = message.from_user.id
-    username = message.from_user.username or message.from_user.first_name
-    first_name = message.from_user.first_name or "there"
-    chat_id = message.chat.id
-
-    # Fetch active game asynchronously
-    active_game = await active_games_col.find_one(
-        {"group_id": chat_id, "status": "waiting"}
-    )
-
-    if not active_game:
-        await message.reply("❌ No active game to join right now.")
-        return
-
-    # Check if the user is already in the game
-    if user_id in active_game["players"]:
-        await message.reply(f"⚠️ {first_name}, you are already in the game.")
-        return
-
-    # Add the user to the game asynchronously
-    await active_games_col.update_one(
-        {"_id": active_game["_id"]},
-        {"$push": {
-            "players": user_id,
-            "players_name": first_name,
-            "players_username": username,
-        }}
-    )
-
-    await message.reply(f"🎉 {first_name}, you have successfully joined the game!")
-    
-
-@bot.on_message(filters.command("members_list") & filters.group)
-async def members_list_command(_, message: Message):
-    """
-    Displays the list of joined members in the active game and mentions their usernames or first names.
-    """
-    group_id = message.chat.id
-    
-    # Fetch active game data
-    active_game = await active_games_col.find_one({"group_id": group_id, "status": {"$in": ["active", "waiting"]}})
-    
-    if not active_game:
-        return await message.reply("❌ No active game right now.")
-
-    players = active_game.get("players", [])
-    
-    if not players:
-        return await message.reply("🚫 No players have joined yet.")
-
-    # Fetch usernames/names from Telegram API
-    player_mentions = await asyncio.gather(
-        *[get_player_mention(bot, player_id) for player_id in players]
-    )
-
-    # Format the player list
-    mentions = [f"{i+1}. {mention}" for i, mention in enumerate(player_mentions)]
-    members_list = "\n".join(mentions)
-
-    await message.reply(
-        f"👥 **Solo Players:**\n\n{members_list}",
-        parse_mode=ParseMode.MARKDOWN
-    )
-
-
-async def get_player_mention(bot, player_id):
-    """
-    Fetches the player's username or first name directly from Telegram.
-    """
-    try:
-        user = await bot.get_users(player_id)
-        if user.username:
-            return f"@{user.username}"
-        return f"[{user.first_name}](tg://user?id={player_id})"
-    except Exception:
-        return f"User {player_id}"
-        
-@bot.on_message(filters.command("leave") & filters.group)
-async def leave_command(_, message: Message):
-    """
-    Allows a user to leave the active game.
-    """
-    user_id = message.from_user.id
-    first_name = message.from_user.first_name or "there"
-    username = message.from_user.username or "Unknown"  # Fetch username
-
-    # Await the active game fetch to get the actual result
-    active_game = await active_games_col.find_one(
-        {"status": "waiting", "end_time": {"$gte": datetime.utcnow()}}
-    )
-
-    if not active_game:
-        await message.reply("❌ No active game to leave.")
-        return
-
-    # Check if the user is in the game
-    if user_id not in active_game["players"]:
-        await message.reply(f"⚠️ {first_name}, you are not part of the game.")
-        return
-
-    # Remove the user from the game
-    await active_games_col.update_one(
-        {"_id": active_game["_id"]},
-        {"$pull": {
-            "players": user_id,
-            "players_name": first_name,
-            "players_username": username,  # Fix: Use the username fetched from the message
-        }}
-    )
-
-    await message.reply(f"👋 {first_name}, you have left the game.")
