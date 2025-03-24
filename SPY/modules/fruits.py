@@ -1,4 +1,4 @@
-from SPY.db import user_col, ban_col, active_game_col, 
+from SPY.db import user_col, ban_col, active_game_col
 from SPY import bot
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
@@ -13,17 +13,18 @@ words = ["Apple", "Banana", "Mango", "Orange", "Watermelon"]
 cooldown_tracker = {}
 
 # Start Game function
-async def start_game(client, message):
-    chat_id = message.chat.id
+@bot.on_callback_query(filters.regex("fruits"))
+async def start_game(client, callback_query):
+    chat_id = callback_query.message.chat.id
     players = [user async for user in bot.get_chat_members(chat_id) if not user.user.is_bot]
-    
+
     if len(players) < 3:
-        await message.reply("Not enough players to start the game.")
+        await callback_query.message.reply("Not enough players to start the game.")
         return
 
     chosen_word = random.choice(words)
     spy_index = random.randint(0, len(players) - 1)
-    
+
     game_data = {
         "chat_id": chat_id,
         "word": chosen_word,
@@ -42,15 +43,15 @@ async def start_game(client, message):
             else:
                 await bot.send_message(player.user.id, f"The word is: {chosen_word}")
         except:
-            await message.reply(f"Couldn't send message to {player.user.first_name}. They might have blocked the bot.")
+            await callback_query.message.reply(f"Couldn't send message to {player.user.first_name}. They might have blocked the bot.")
 
     active_game_col.insert_one(game_data)
     cooldown_tracker[chat_id] = asyncio.get_event_loop().time()  # Start cooldown timer
-    await message.reply("The game has started! Check your private messages for your role.\n\nVoting will begin after **3 minutes**.")
+    await callback_query.message.reply("The game has started! Check your private messages for your role.\n\nVoting will begin after **3 minutes**.")
 
     # Start countdown for voting
     await asyncio.sleep(180)  # 3-minute cooldown
-    await start_voting(client, message)
+    await start_voting(client, callback_query.message)
 
 # Voting Function
 async def start_voting(client, message):
@@ -145,7 +146,7 @@ async def end_voting(client, message, msg):
 @bot.on_message(filters.command("force_vote"))
 async def force_vote(client, message):
     chat_id = message.chat.id
-    if chat_id not in cooldown_tracker or asyncio.get_event_loop().time() - cooldown_tracker[chat_id] < 180:
+    if chat_id not in cooldown_tracker or asyncio.get_event_loop().time() - cooldown_tracker[chat_id] > 180:
         await message.reply("⚡ Force voting started!")
         await start_voting(client, message)
     else:
@@ -160,4 +161,3 @@ async def skip_vote(client, callback_query):
     cooldown_tracker[chat_id] = asyncio.get_event_loop().time()
     await asyncio.sleep(180)  # 3-minute cooldown
     await start_voting(client, callback_query.message)
-
