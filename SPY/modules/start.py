@@ -1,8 +1,8 @@
 from pyrogram import filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, Message
-from FB import bot
+from SPY import bot
 from datetime import datetime
-from FB.db import users_col, active_games_col # Ensure this is connected to your MongoDB
+from SPY.db import users_col, active_games_col # Ensure this is connected to your MongoDB
 from pyrogram.enums import ChatType
 import asyncio
 from datetime import datetime, timedelta
@@ -35,8 +35,8 @@ async def start_command(_, message: Message):
             reply_markup=InlineKeyboardMarkup(
                 [
                     [
-                        InlineKeyboardButton("Solo", callback_data="solo"),
-                        InlineKeyboardButton("Team", callback_data="team"),
+                        InlineKeyboardButton("FRUITS 🍍🍎🍓🍇", callback_data="fruits"),
+                        InlineKeyboardButton("CRICKETER 🏏", callback_data="cricket"),
                     ],
                     [InlineKeyboardButton("❌ Cancel", callback_data="cancel")],
                 ]
