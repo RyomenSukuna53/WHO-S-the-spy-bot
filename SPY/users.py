@@ -1,5 +1,5 @@
 from datetime import datetime
-from FB.db import users_col
+from SPY.db import users_col
 import math
 
 # Helper Functions
