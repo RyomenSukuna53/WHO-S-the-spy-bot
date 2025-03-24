@@ -27,9 +27,8 @@ async def create_game(group_id, creator_id, creator_name, mode):
         "group_id": group_id,
         "mode": mode,
         "players": [creator_id],
-        "defenders": [],
-        "attackers": [],
-        "warnings": {},
+        "humans": [],
+        "spy": [],
         "current_turn": creator_id,
         "start_time": None,
         "status": "waiting"
