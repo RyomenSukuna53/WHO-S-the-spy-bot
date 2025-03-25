@@ -5,7 +5,9 @@ from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from pyrogram.handlers import MessageHandler, CallbackQueryHandler
 from os import getenv
+from dotenv import load_dotenv
 
+load_dotenv() 
 API_ID = int(os.getenv("API_ID")) 
 API_HASH = os.getenv("API_HASH") 
 TOKEN = os.getenv("TOKEN ")
