@@ -4,7 +4,7 @@ from pyrogram import Client, filters
 from bson import ObjectId  # Import ObjectId for MongoDB operations
 
 # MongoDB Connection
-MONGO_URI = "mongodb+srv://sufyan532011:5042hexaauctionbot.otwga.mongodb.net/?retryWrites=true&w=majority&appName=Hexaauctionbot"
+MONGO_URI = "mongodb+srv://sufyan532011:5042@hexaauctionbot.otwga.mongodb.net/?retryWrites=true&w=majority&appName=Hexaauctionbot"
 client = AsyncIOMotorClient(MONGO_URI)
 spy = client["spy_database"]  # Define your database
 
