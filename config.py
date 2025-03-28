@@ -1,14 +1,8 @@
 import os
-from dotenv import load_dotenv
+from os import getenv
 
-# Load environment variables from .env file
-load_dotenv()
-
-# Required variables
-API_ID = int(os.getenv("25698862", 0))  # Default 0 if missing
-API_HASH = os.getenv("7d7739b44f5f8c825d48cc6787889dbc", "")
-TOKEN = os.getenv("7979148246:AAF1QDrslVCsOXWoGy9-XMbr05Ya9In-X1E", "")
-
-# Ensure all required variables are present
-if not all([API_ID, API_HASH, TOKEN]):
-    raise ValueError("Missing required environment variables: API_ID, API_HASH, TOKEN")
+API_ID = int(getenv("API_ID", "18990697"))
+API_HASH = getenv("API_HASH", "f4815b9a16cb03c2f5eabe8db1cb0903")
+TOKEN = getenv("TOKEN", "7506827691:AAGRtD6TrW3vDopi_-UnVETI9J5DcoS7nTU")
+BOT_OWNER_ID = list(map(int, getenv("OWNER", "6239769036").split(',')))
+SUPPORT_CHAT = getenv("SUPPORT_CHAT", "https://t.me/Dragon_ballsopport_Xprobot") 
