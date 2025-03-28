@@ -2,3 +2,4 @@ kurigram
 tgcrypto
 python-dotenv
 pymongo[srv]
+motor
