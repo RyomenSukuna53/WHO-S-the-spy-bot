@@ -1,4 +1,4 @@
-from SPY.db import user_col, ban_col, active_game_col
+from SPY.db import users_col, ban_col, active_game_col
 from SPY import bot
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
