@@ -1,4 +1,6 @@
-WORKDIR /root/DBZ
+FROM python.3.11
+
+WORKDIR /root/SPY
 
 COPY . .
 
