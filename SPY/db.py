@@ -64,4 +64,9 @@ async def remove_game(game_id):
         print(f"⚠️ No game found with ID {game_id}.")
 
 # Run MongoDB connection test
-asyncio.run(test_mongo_connection())
+async def main():
+    """Main entry point to avoid task destruction."""
+    await test_mongo_connection()
+
+if __name__ == "__main__":
+    asyncio.run(main())
