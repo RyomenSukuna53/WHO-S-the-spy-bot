@@ -2,7 +2,7 @@ from pyrogram import client, filters
 from SPY import bot
 from SPY.db import users_col, ban_col
 from config import BOT_OWNER_ID
-
+from pyrogram.types import Message
 
 
 # Command: Broadcast
