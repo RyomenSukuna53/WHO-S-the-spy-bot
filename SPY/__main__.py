@@ -1,4 +1,4 @@
-from SPY.__init__ import bot
+from SPY import bot
 from SPY.modules import start, fruits, dev, imp
 from SPY import logs
 
