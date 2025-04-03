@@ -18,7 +18,7 @@ LOGGER = logging.getLogger(__name__)
 
 # Pyrogram Client Setup
 bot = Client(
-    "WSPY",  # Name of the session
+    "SPY_Bot",  # Name of the session
     api_id=API_ID,
     api_hash=API_HASH,
     bot_token=TOKEN,
