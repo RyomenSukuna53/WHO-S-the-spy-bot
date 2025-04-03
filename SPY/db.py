@@ -6,7 +6,7 @@ from bson import ObjectId  # Import ObjectId for MongoDB operations
 # MongoDB Connection
 MONGO_URI = "mongodb+srv://sufyan532011:2011@spybot.qwzaw0t.mongodb.net/?retryWrites=true&w=majority&appName=SpyBot"
 client = AsyncIOMotorClient(MONGO_URI)
-spy = client["spy_database"]  # Define your database
+spy = client["ULLU"]  # Define your database
 
 # Collections
 users_col = spy["users"]
