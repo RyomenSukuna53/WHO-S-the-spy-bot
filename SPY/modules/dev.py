@@ -1,6 +1,9 @@
 from pyrogram import client, filters
 from SPY import bot
 from SPY.db import users_col, ban_col
+from config import BOT_OWNER_ID
+
+
 
 # Command: Broadcast
 @bot.on_message(filters.command("broadcast") & filters.user(BOT_OWNER_ID))
